@@ -20,7 +20,7 @@ signal.signal(signal.SIGCONT, handler)
 
 
 @monitor.monitor
-@app.task
+@app.task(name='slow_echo')
 def slow_echo(message):
     """
     Waits for the worker to receive the SIGCONT signal, then echoes the input.

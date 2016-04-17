@@ -3,7 +3,7 @@ from redis import StrictRedis
 
 __author__ = 'Omar Khan'
 __email__ = 'omar@omarkhan.me'
-__version__ = '0.0.1'
+__version__ = '0.1.0'
 
 
 class TaskMonitor(object):
@@ -19,8 +19,11 @@ class TaskMonitor(object):
         Return the current state of all pending tasks. Returns a mapping of
         task ids to their status ('queued' or 'running').
         """
-        return {key.decode(): value.decode()
-                for key, value in self.redis.hgetall(self.redis_key).items()}
+        result = {}
+        for key, value in self.redis.hgetall(self.redis_key).items():
+            task_name, task_id = self._split_task_key(key)
+            result[task_id] = {'name': task_name, 'state': value.decode()}
+        return result
 
     def monitor(self, task):
         """
@@ -32,10 +35,23 @@ class TaskMonitor(object):
         return task
 
     def _queued(self, sender, body, **kwargs):
-        self.redis.hset(self.redis_key, body['id'], 'queued')
+        self.redis.hset(self.redis_key,
+                        self._task_key(sender, body['id']),
+                        'queued')
 
     def _running(self, sender, task_id, **kwargs):
-        self.redis.hset(self.redis_key, task_id, 'running')
+        self.redis.hset(self.redis_key,
+                        self._task_key(sender.name, task_id),
+                        'running')
 
     def _complete(self, sender, task_id, **kwargs):
-        self.redis.hdel(self.redis_key, task_id)
+        self.redis.hdel(self.redis_key,
+                        self._task_key(sender.name, task_id))
+
+    @staticmethod
+    def _task_key(task_name, task_id):
+        return '{0}:{1}'.format(task_name, task_id)
+
+    @staticmethod
+    def _split_task_key(key):
+        return key.decode().rsplit(':', 1)

@@ -12,10 +12,12 @@ class TestTaskMonitor(unittest.TestCase):
 
     def test_state(self):
         task = tasks.slow_echo.delay('test')
-        self.assertEqual(tasks.monitor.state(), {task.id: 'queued'})
+        self.assertEqual(tasks.monitor.state(),
+                         {task.id: {'name': 'slow_echo', 'state': 'queued'}})
         worker = self.start_worker()
         time.sleep(1)
-        self.assertEqual(tasks.monitor.state(), {task.id: 'running'})
+        self.assertEqual(tasks.monitor.state(),
+                         {task.id: {'name': 'slow_echo', 'state': 'running'}})
         worker.send_signal(signal.SIGCONT)
         self.assertEqual(task.get(), 'test')
         self.assertEqual(tasks.monitor.state(), {})

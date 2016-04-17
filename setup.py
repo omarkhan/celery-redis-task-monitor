@@ -12,7 +12,7 @@ requirements = [
 
 setup(
     name='celery-redis-task-monitor',
-    version='0.0.1',
+    version='0.1.0',
     description='Celery Task Monitor for Django',
     long_description=long_description,
     author='Omar Khan',
