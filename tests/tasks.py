@@ -25,6 +25,8 @@ def slow_echo(message):
     """
     Waits for the worker to receive the SIGCONT signal, then echoes the input.
     """
+    global light
     while light != 'green':
         time.sleep(0.5)
+    light = 'red'
     return message
